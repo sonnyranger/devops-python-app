@@ -1,0 +1,23 @@
+stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  IMAGE_NAME: $CI_REGISTRY_IMAGE/task-app
+
+build:
+  stage: build
+  script:
+    - docker build -t $IMAGE_NAME .
+    - docker push $IMAGE_NAME
+
+test:
+  stage: test
+  script:
+    - echo "Run tests here"
+
+deploy:
+  stage: deploy
+  script:
+    - kubectl apply -f k8s/
