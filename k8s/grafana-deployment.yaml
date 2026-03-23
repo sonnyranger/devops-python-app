@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: task-app
+  name: grafana
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
-      app: task-app
+      app: grafana
   template:
     metadata:
       labels:
-        app: task-app
+        app: grafana
     spec:
       containers:
-      - name: app
-        image: sonnyrranger/task-app:latest
+      - name: grafana
+        image: grafana/grafana:latest
         ports:
-        - containerPort: 8000
+        - containerPort: 3000
