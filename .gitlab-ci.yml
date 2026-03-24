@@ -30,7 +30,6 @@ deploy:
   stage: deploy
   image: bitnami/kubectl:1.27
   before_script:
-    # создаём kubeconfig из переменной CI/CD
     - echo "$KUBECONFIG_DATA" > kubeconfig
     - export KUBECONFIG=$CI_PROJECT_DIR/kubeconfig
   script:
