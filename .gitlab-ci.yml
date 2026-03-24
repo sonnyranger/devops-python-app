@@ -1,23 +1,22 @@
 stages:
   - build
-  - test
   - deploy
 
 variables:
-  IMAGE_NAME: $CI_REGISTRY_IMAGE/task-app
+  IMAGE: sonnyrranger/task-app:latest
+
+before_script:
+  - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 
 build:
   stage: build
   script:
-    - docker build -t $IMAGE_NAME .
-    - docker push $IMAGE_NAME
-
-test:
-  stage: test
-  script:
-    - echo "Run tests here"
+    - docker build -t $IMAGE .
+    - docker push $IMAGE
 
 deploy:
   stage: deploy
   script:
+    - echo "$KUBECONFIG_DATA" > kubeconfig
+    - export KUBECONFIG=$PWD/kubeconfig
     - kubectl apply -f k8s/
