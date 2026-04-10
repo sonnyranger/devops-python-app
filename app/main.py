@@ -21,7 +21,7 @@ def get_connection():
 @app.get("/")
 def read_root():
     REQUEST_COUNT.inc()
-    return {"message": "Bye DevOps!"}
+    return {"message": "ByeBye!"}
 
 @app.get("/tasks")
 def get_tasks():
