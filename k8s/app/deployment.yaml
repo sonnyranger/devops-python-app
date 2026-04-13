@@ -13,8 +13,29 @@ spec:
         app: task-app
     spec:
       containers:
-      - name: app
-        image: sonnyrranger/task-app:latest
-        ports:
-        - containerPort: 8000
-    
+        - name: app
+          image: sonnyrranger/task-app:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DB_HOST
+              value: "postgres"
+            - name: DB_NAME
+              value: "music"
+            - name: DB_USER
+              value: "postgres"
+            - name: DB_PASSWORD
+              value: "postgres"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 20
