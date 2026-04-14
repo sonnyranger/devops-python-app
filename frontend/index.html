@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Music API</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      background: #0b1020;
+      color: #f4f7fb;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 20px 60px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 40px;
+    }
+    .subtitle {
+      color: #9aa4b2;
+      margin-bottom: 28px;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .card, .panel {
+      background: #11182b;
+      border: 1px solid #1f2a44;
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.2);
+    }
+    .card {
+      padding: 18px;
+    }
+    .card-title {
+      color: #9aa4b2;
+      font-size: 13px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .card-value {
+      font-size: 26px;
+      font-weight: 700;
+    }
+    .panel {
+      padding: 18px;
+      margin-bottom: 20px;
+    }
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    input {
+      flex: 1;
+      min-width: 220px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid #243250;
+      background: #0e1527;
+      color: white;
+      outline: none;
+    }
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 14px 18px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-primary {
+      background: #ffffff;
+      color: #0b1020;
+    }
+    .btn-play {
+      background: #22c55e;
+      color: white;
+      padding: 10px 14px;
+    }
+    .error {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(220,38,38,.15);
+      border: 1px solid rgba(220,38,38,.35);
+      color: #fecaca;
+    }
+    .tracks {
+      display: grid;
+      gap: 12px;
+    }
+    .track {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      padding: 16px 18px;
+      border-bottom: 1px solid #1b2842;
+    }
+    .track:last-child { border-bottom: 0; }
+    .track-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .track-meta {
+      color: #9aa4b2;
+      font-size: 14px;
+    }
+    .track-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .plays {
+      text-align: right;
+      min-width: 70px;
+    }
+    .plays-label {
+      color: #9aa4b2;
+      font-size: 12px;
+    }
+    .plays-value {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .muted {
+      color: #9aa4b2;
+    }
+    @media (max-width: 720px) {
+      .track {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .track-right {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Music API</h1>
+    <div class="subtitle">Sonny Ranger Music</div>
+
+    <div class="stats">
+      <div class="card">
+        <div class="card-title">Всего треков</div>
+        <div class="card-value" id="tracksCount">—</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Всего прослушиваний</div>
+        <div class="card-value" id="playsCount">—</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Топ трек</div>
+        <div class="card-value" id="topTrack">—</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="toolbar">
+        <input id="searchInput" placeholder="Поиск по названию, артисту или жанру" />
+        <button class="btn-primary" onclick="loadTracks()">Обновить</button>
+      </div>
+      <div id="errorBox"></div>
+    </div>
+
+    <div class="panel">
+      <div id="tracks" class="tracks">
+        <div class="muted">Загрузка...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "https://app.sonnyrranger.ru";
+    let allTracks = [];
+
+    async function loadTracks() {
+      setError("");
+      document.getElementById("tracks").innerHTML = '<div class="muted">Загрузка...</div>';
+
+      try {
+        const res = await fetch(`${API_BASE}/tracks`);
+        if (!res.ok) throw new Error("Не удалось загрузить треки");
+        allTracks = await res.json();
+        render();
+      } catch (e) {
+        setError(e.message || "Ошибка");
+        document.getElementById("tracks").innerHTML = "";
+      }
+    }
+
+    function setError(message) {
+      const box = document.getElementById("errorBox");
+      box.innerHTML = message ? `<div class="error">${message}</div>` : "";
+    }
+
+    function render() {
+      const q = document.getElementById("searchInput").value.trim().toLowerCase();
+
+      const tracks = allTracks.filter(t =>
+        [t.title, t.artist, t.genre].some(v => String(v).toLowerCase().includes(q))
+      );
+
+      document.getElementById("tracksCount").textContent = allTracks.length;
+      document.getElementById("playsCount").textContent =
+        allTracks.reduce((sum, t) => sum + Number(t.plays || 0), 0);
+
+      const top = [...allTracks].sort((a, b) => b.plays - a.plays)[0];
+      document.getElementById("topTrack").textContent =
+        top ? `${top.title} — ${top.artist}` : "—";
+
+      const container = document.getElementById("tracks");
+
+      if (!tracks.length) {
+        container.innerHTML = '<div class="muted">Ничего не найдено</div>';
+        return;
+      }
+
+      container.innerHTML = tracks.map(track => `
+        <div class="track">
+          <div>
+            <div class="track-title">${escapeHtml(track.title)}</div>
+            <div class="track-meta">${escapeHtml(track.artist)} · ${escapeHtml(track.genre)}</div>
+          </div>
+          <div class="track-right">
+            <div class="plays">
+              <div class="plays-label">plays</div>
+              <div class="plays-value">${track.plays}</div>
+            </div>
+            <button class="btn-play" onclick="playTrack(${track.id})">Play</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    async function playTrack(id) {
+      setError("");
+      try {
+        const res = await fetch(`${API_BASE}/tracks/${id}/play`, { method: "POST" });
+        if (!res.ok) throw new Error("Не удалось увеличить plays");
+        await loadTracks();
+      } catch (e) {
+        setError(e.message || "Ошибка при play");
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    document.getElementById("searchInput").addEventListener("input", render);
+
+    loadTracks();
+  </script>
+</body>
+</html>

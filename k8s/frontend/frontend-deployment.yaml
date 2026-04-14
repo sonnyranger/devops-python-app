@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: music-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: music-frontend
+  template:
+    metadata:
+      labels:
+        app: music-frontend
+    spec:
+      containers:
+        - name: music-frontend
+          image: sonnyrranger/music-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
